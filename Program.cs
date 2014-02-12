@@ -47,7 +47,7 @@ namespace ExcelManip {
 
         static void Main(string[] args) {
             string strIF = "";
-            //string strIF = "ius8-summary.xlsx";
+            //string strIF = "ius8-summary.xlsx"; // breakpoints/troubleshooting
             string PRODUCT = string.Empty;
             string OWNER = string.Empty;
 
@@ -64,11 +64,9 @@ namespace ExcelManip {
             } //*/
 
             using (SpreadsheetDocument doc = SpreadsheetDocument.Open(strIF, false)) {
-                //WorkbookPart wbPart = doc.WorkbookPart;
                 WorksheetPart wsFeatureList = SpreadsheetReader.GetWorksheetPartByName(doc, "Feature List");
                 Row[] rows = wsFeatureList.Worksheet.Descendants<Row>().ToArray();
                 OrderedDictionary odAreas = new OrderedDictionary();
-                //OrderedDictionary odFeatures = new OrderedDictionary();
                 string currArea = string.Empty;
                 string prevArea = string.Empty;
                 bool newArea = false;
@@ -87,27 +85,18 @@ namespace ExcelManip {
                     string strNumManTCs = string.Empty;
                     string[] arrFeature;
                     int numManTCs; // = -1;
-                    
-                    //int cellIndex = -1;
-
 
                     /*
                      * get features and number of cases
                      */
-                    // cell (string) contents stored in SharedStringTable!
-                    //cellIndex = int.Parse(cells[0].InnerText);
-                    //SharedStringItem item = wbPart.SharedStringTablePart.SharedStringTable.Elements<SharedStringItem>().ElementAt(cellIndex);
-                    
-                    //featureName = item.Text.Text;
                     featureName = GetCellValue(cells[0]);
-                    //strNumManTCs = cells[1].InnerText; // = cells[1].CellValue.Text;
                     strNumManTCs = GetCellValue(cells[1]);
+
                     if (!int.TryParse(strNumManTCs, out numManTCs)) numManTCs = 1; // we assume at least 1 TC per feature
-                    //functionalArea = featureName.Split(new char[] { '\\' })[0];
                     arrFeature = featureName.Split(new char[] { '\\' });
                     functionalArea = arrFeature[0];
                     currArea = functionalArea;
-                    //if (!newArea) prevArea = currArea; // set it for the first run
+
                     if (r == 4) prevArea = currArea; // set it for the first run
                     if (currArea != prevArea) newArea = true;
 
@@ -115,20 +104,13 @@ namespace ExcelManip {
                     featureName = featureName.TrimStart(new char[] { '\\' });
 
                     /*
-                     * add to main OrderedDictionary (odAreas), if needed
+                     * add to previous area
                      */
                     if (newArea) {
-                        // add odFeatures to odAreas
-                        //if (!odAreas.Contains(functionalArea)) odAreas.Add(functionalArea, odFeatures);
-                        //if (!odAreas.Contains(prevArea))
-                        
-                        //List<Feature> tempFeatures = new List<Feature>(listFeatures);
-                        //tempFeatures = listFeatures;
-                        //odAreas.Add(prevArea, tempFeatures);
+                        // add features list to previous area
                         odAreas.Add(prevArea, new List<Feature>(listFeatures));
 
-                        // clear odFeatures
-                        //odFeatures.Clear();
+                        // clear features list
                         listFeatures.Clear();
 
                         // reset newArea/prevArea
@@ -137,88 +119,22 @@ namespace ExcelManip {
                     }
 
                     /*
-                     * add to sub OrderedDictionary (odFeatures)
+                     * add feature to list
                      */
-                    //if (!odFeatures.Contains(featureName)) odFeatures.Add(featureName, numManTCs);
                     listFeatures.Add(new Feature() { FeatureName = featureName, NumberOfTests = numManTCs } );
-
-                    /*
-                     * test output
-                     */
-                    /*
-                    if (!(functionalArea == "?")) { // I don't care enough to properly test for empty cells, soooooo
-                        Console.Out.WriteLine("Row {0}: {1} - {2} ({3})",
-                            r.ToString(),
-                            functionalArea,
-                            featureName,
-                            //strNumManTCs
-                            numManTCs.ToString()
-                        );
-                    }
-                    //Console.Out.WriteLine("-------------------------------------");
-                    //*/
-
-
-
-                    //foreach (DictionaryEntry de in myOrderedDictionary)
-                    /*
-                    foreach (DictionaryEntry deArea in odAreas) {
-                        OrderedDictionary odFeaturesOutput = (OrderedDictionary)deArea.Value;
-
-                        foreach (DictionaryEntry deFeature in odFeaturesOutput) {
-                            Console.Out.WriteLine("{0}, {1}, {2}", deArea.Key.ToString(), deFeature.Key.ToString(), deFeature.Value.ToString());
-                        }
-                    } //*/
-
-                    /*
-                    List<object> rowData = new List<object>();
-                    string value;
-
-                    foreach (Cell c in rows[r].Elements<Cell>()) {
-                        value = GetCellValue(c);
-                    } */
                 } // end rows iteration
 
-                //((Dictionary())userRoles["UserRoles"])["MyKey"] = "My Value";
-
-                /*
+                // output ordered dicts
                 IDictionaryEnumerator enumAreas = odAreas.GetEnumerator();
                 while (enumAreas.MoveNext()) {
-                    OrderedDictionary odFeaturesOutput = (OrderedDictionary)enumAreas.Value;
-                    IDictionaryEnumerator enumFeatures = odFeaturesOutput.GetEnumerator();
-
-                    while (enumFeatures.MoveNext()) {
-                        Console.Out.WriteLine("{0}, {1}, {2}", enumAreas.Key.ToString(), enumFeatures.Key.ToString(), enumFeatures.Value.ToString());
-                    }
-                }//*/
-
-                IDictionaryEnumerator enumAreas = odAreas.GetEnumerator();
-                while (enumAreas.MoveNext()) {
-                    //List<Feature>
-
                     List<Feature> outputFeatures = (List<Feature>)enumAreas.Value;
 
                     foreach (Feature aFeature in outputFeatures) {
                         Console.Out.WriteLine(enumAreas.Key.ToString() + " " + aFeature);
                     }
                 }
-
-                // output ordered dicts
-                /*
-                foreach (DictionaryEntry deArea in odAreas) {
-                    OrderedDictionary odFeaturesOutput = (OrderedDictionary)deArea.Value;
-
-                    foreach (DictionaryEntry deFeature in odFeaturesOutput) {
-                        Console.Out.WriteLine("{0}, {1}, {2}", deArea.Key.ToString(), deFeature.Key.ToString(), deFeature.Value.ToString());
-                    }
-                } //*/
-                
-                
             }
         } // end Main(args)
-
-
-
 
         /*
          * GetCellValue(Cell cell)
