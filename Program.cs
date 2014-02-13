@@ -39,14 +39,12 @@ namespace ExcelManip {
             if (other == null) return false;
             return (this.NumberOfTests.Equals(other.NumberOfTests));
         }
-        // Should also override == and != operators.
-
     }
 
     class Program {
 
         static void Main(string[] args) {
-            string strIF = "";
+            string strIF = string.Empty;
             //string strIF = "ius8-summary.xlsx"; // breakpoints/troubleshooting
             string PRODUCT = string.Empty;
             string OWNER = string.Empty;
@@ -124,13 +122,27 @@ namespace ExcelManip {
                     listFeatures.Add(new Feature() { FeatureName = featureName, NumberOfTests = numManTCs } );
                 } // end rows iteration
 
-                // output ordered dicts
+
+                /*
+                 * build ALM import workbook
+                 * - base on input filename? output filename configurable?
+                 */
+
+                // iterate through all areas
                 IDictionaryEnumerator enumAreas = odAreas.GetEnumerator();
                 while (enumAreas.MoveNext()) {
                     List<Feature> outputFeatures = (List<Feature>)enumAreas.Value;
 
+                    // create worksheet for current area
+
+                    // iterate through all features
                     foreach (Feature aFeature in outputFeatures) {
                         Console.Out.WriteLine(enumAreas.Key.ToString() + " " + aFeature);
+
+                        // get number of tests
+                        // ensure we have rest of TC data (product/status/owner/etc)
+
+                        // add rows (current feature, duplicated over number of tests)
                     }
                 }
             }
