@@ -43,28 +43,57 @@ namespace ExcelManip {
 
     class Program {
 
+        /*
+         * Main(args[])
+         * Author: ageorge
+         * 
+         * in: (INPUT_FILENAME[|OUTPUT_FILENAME])
+         * - creates a spreadsheet (OUTPUT_FILENAME) with an expanded shell of ALM test cases from INPUT_FILENAME
+         */
         static void Main(string[] args) {
-            string strIF = string.Empty;
-            //string strIF = "ius8-summary.xlsx"; // breakpoints/troubleshooting
+            string INPUT_FILENAME = string.Empty;
+            string OUTPUT_FILENAME = string.Empty;
+            string strOF = string.Empty;
+            //string INPUT_FILENAME = "ius8-summary.xlsx"; // breakpoints/troubleshooting
             string PRODUCT = string.Empty;
             string OWNER = string.Empty;
 
-            //*
-            if (args.Length == 1) {
-                strIF = args[0];
-                Console.Out.WriteLine(strIF);
-            }
-            else if (args.Length > 1) {
-                Console.Out.WriteLine("Please enter a single file name.");
-            }
-            else {
-                Console.Out.WriteLine("Please enter a file name.");
-            } //*/
+            WorksheetPart wsFeatureList;
+            OrderedDictionary odAreas = new OrderedDictionary();
 
-            using (SpreadsheetDocument doc = SpreadsheetDocument.Open(strIF, false)) {
-                WorksheetPart wsFeatureList = SpreadsheetReader.GetWorksheetPartByName(doc, "Feature List");
+            /*
+             * process arguments
+             * INPUT_FILENAME|INPUT_FILENAME OUTPUT_FILENAME
+             */
+            if (args.Length == 0) { // usage
+                return;
+            }
+            if (args.Length == 1 || args.Length == 2) {
+                INPUT_FILENAME = args[0];
+                try {
+                    OUTPUT_FILENAME = args[1];
+                }
+                catch (Exception ex) {
+                    // doesn't exist or bad, stays string.Empty?
+                }
+
+                if (!INPUT_FILENAME.EndsWith(".xlsx") || (!string.IsNullOrEmpty(OUTPUT_FILENAME) && !OUTPUT_FILENAME.EndsWith(".xlsx"))) {
+                    Console.Out.WriteLine("This only works with Excel 2007+ (.xlsx) spreadsheets.");
+                    return;
+                }
+                else if (args.Length == 1) {
+                    OUTPUT_FILENAME = INPUT_FILENAME.Replace(".xlsx", "-alm-import.xlsx");
+                }    
+            }
+
+            /*
+             * read test case summary spreadsheet
+             * reads INPUT_FILENAME
+             * - base on input filename? output filename configurable?
+             */
+            using (SpreadsheetDocument docInput = SpreadsheetDocument.Open(INPUT_FILENAME, false)) {
+                wsFeatureList = SpreadsheetReader.GetWorksheetPartByName(docInput, "Feature List");
                 Row[] rows = wsFeatureList.Worksheet.Descendants<Row>().ToArray();
-                OrderedDictionary odAreas = new OrderedDictionary();
                 string currArea = string.Empty;
                 string prevArea = string.Empty;
                 bool newArea = false;
@@ -121,12 +150,25 @@ namespace ExcelManip {
                      */
                     listFeatures.Add(new Feature() { FeatureName = featureName, NumberOfTests = numManTCs } );
                 } // end rows iteration
+            } // end reading spreadsheet
 
 
-                /*
-                 * build ALM import workbook
-                 * - base on input filename? output filename configurable?
-                 */
+
+
+            /*
+            * build ALM import workbook
+            * - base on input filename? output filename configurable?
+            */
+            using (SpreadsheetDocument docOutput = SpreadsheetDocument.Create(OUTPUT_FILENAME, SpreadsheetDocumentType.Workbook)) {
+                SharedStringTablePart tablepart;
+                WorkbookStylesPart stylespart;
+
+                docOutput.AddWorkbookPart();
+                docOutput.WorkbookPart.Workbook = new Workbook();
+
+                tablepart = docOutput.WorkbookPart.AddNewPart<SharedStringTablePart>();
+                tablepart.SharedStringTable = new SharedStringTable();
+                    
 
                 // iterate through all areas
                 IDictionaryEnumerator enumAreas = odAreas.GetEnumerator();
@@ -134,6 +176,7 @@ namespace ExcelManip {
                     List<Feature> outputFeatures = (List<Feature>)enumAreas.Value;
 
                     // create worksheet for current area
+
 
                     // iterate through all features
                     foreach (Feature aFeature in outputFeatures) {
@@ -144,8 +187,15 @@ namespace ExcelManip {
 
                         // add rows (current feature, duplicated over number of tests)
                     }
-                }
-            }
+                } // end iterating through areas, data should be in spreadsheet
+
+                // styling
+
+                // save spreadsheet
+
+                // exit
+                return;
+            } // end creating spreadsheet
         } // end Main(args)
 
         /*
