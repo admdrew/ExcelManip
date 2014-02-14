@@ -52,12 +52,30 @@ namespace ExcelManip {
          */
         static void Main(string[] args) {
             string INPUT_FILENAME = string.Empty;
-            //INPUT_FILENAME = "ius8-summary.xlsx"; // breakpoints/troubleshooting
+            INPUT_FILENAME = "ius8-summary.xlsx"; // breakpoints/troubleshooting
             string OUTPUT_FILENAME = string.Empty;
-            string strOF = string.Empty;
-            string PRODUCT = string.Empty;
-            string OWNER = string.Empty;
+
+            string ROOT_FOLDER = "IUS"; //string.Empty;
+            string PRODUCT = ROOT_FOLDER; //string.Empty;
+            string STATUS = "Review"; //string.Empty;
+            string OWNER = "andy.george_hp.com"; //string.Empty;
+
+            string[] COLUMN_HEADERS = {
+                "Subject",
+                "Test Name",
+                "Product",
+                "Priority",
+                "Description",
+                "Step Name (Design Steps)",
+                "Description (Design Steps)",
+                "Expected (Design Steps)",
+                "Status",
+                "Owner"
+            };
+
             int argumentLength;
+            //string strOF = string.Empty;
+            
 
             WorksheetPart wsFeatureList;
             OrderedDictionary odAreas = new OrderedDictionary();
@@ -185,20 +203,38 @@ namespace ExcelManip {
 
             // iterate through all areas
             IDictionaryEnumerator enumAreas = odAreas.GetEnumerator();
-            uint outputRow = 1;
+            int intCurrArea = 0;
             int numFeatures = -1;
             int numTests = -1;
+            string testName = string.Empty;
+            string subject = string.Empty;
 
             while (enumAreas.MoveNext()) {
+                uint outputRow = 2; // header row = 1
                 List<Feature> outputFeatures = (List<Feature>)enumAreas.Value;
                 string area = enumAreas.Key.ToString();
 
+                Program blah = new Program();
+
                 // create worksheet for current area
                 Excel.AddWorksheet(docOutput, area);
-                worksheet = docOutput.WorkbookPart.WorksheetParts.First().Worksheet;
+                //worksheet = new Worksheet();
+                worksheet = GetWorksheetPart(docOutput.WorkbookPart, area).Worksheet;
+                //string sheetName = docOutput.WorkbookPart.Workbook.Descendants<Sheet>().ElementAt(intCurrArea).Name;
+                //Console.Out.WriteLine(sheetName);
+                //worksheet = docOutput.WorkbookPart.WorksheetParts.First<Sheet>(s => area.Equals(s.Name));
+                //worksheet = docOutput.WorkbookPart.WorksheetParts.ElementAt(intCurrArea).Worksheet;
+                //intCurrArea++;
+                //Console.Out.WriteLine(worksheet
+
+                // write header row
+                for (int i = 0; i < COLUMN_HEADERS.Length; i++) {
+                    Excel.SetCellValue(docOutput, worksheet, (uint)(i + 1), 1, COLUMN_HEADERS[i], true);
+                }
 
                 // iterate through all features
                 numFeatures = outputFeatures.Count;
+                
                 foreach (Feature aFeature in outputFeatures) {
                     Console.Out.WriteLine(area + " " + aFeature);
 
@@ -208,7 +244,30 @@ namespace ExcelManip {
                         
                     // add rows (current feature, duplicated over number of tests)
                     for (int i = 0; i < numTests; i++) {
-                        Excel.SetCellValue(docOutput, worksheet, 1, outputRow, aFeature.FeatureName, true);
+                        testName = aFeature.FeatureName.Split('\\').Last() + " test " + (i + 1).ToString();
+                        subject = ROOT_FOLDER + "\\" + area + "\\" + aFeature.FeatureName;
+
+                        //Subject 1
+                        Excel.SetCellValue(docOutput, worksheet, 1, outputRow, subject, true);
+
+                        //Test name 2
+                        Excel.SetCellValue(docOutput, worksheet, 2, outputRow, testName, true);
+                        
+                        //Product 3
+                        Excel.SetCellValue(docOutput, worksheet, 3, outputRow, PRODUCT, true);
+
+                        //Priority 4
+                        //Description 5
+                        //Step Name (Design Steps) 6
+                        //Description (Design Steps) 7
+                        //Expected (Design Steps) 8
+
+                        //Status 9
+                        Excel.SetCellValue(docOutput, worksheet, 9, outputRow, STATUS, true);
+
+                        //Owner 10
+                        Excel.SetCellValue(docOutput, worksheet, 10, outputRow, OWNER, true);
+                        
                         outputRow++;
                     }
                 }
@@ -281,7 +340,17 @@ namespace ExcelManip {
             return value;
         }
 
-
+        /*
+         * GetWorksheetPart(WorkbookPart workbookPart, string sheetName)
+         * Author: amurra (http://stackoverflow.com/a/8818645/1454048)
+         * 
+         * in: WorkbookPart, string
+         * out: WorksheetPart with name sheetName
+         */
+        public static WorksheetPart GetWorksheetPart(WorkbookPart workbookPart, string sheetName) {
+            string relId = workbookPart.Workbook.Descendants<Sheet>().First(s => sheetName.Equals(s.Name)).Id;
+            return (WorksheetPart)workbookPart.GetPartById(relId);
+        }
 
     }
 }

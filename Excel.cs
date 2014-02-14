@@ -496,4 +496,5 @@ namespace ExcelManip {
             return true;
         }
     }
+
 }
