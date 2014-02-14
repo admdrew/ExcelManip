@@ -52,7 +52,7 @@ namespace ExcelManip {
          */
         static void Main(string[] args) {
             string INPUT_FILENAME = string.Empty;
-            INPUT_FILENAME = "ius8-summary.xlsx"; // breakpoints/troubleshooting
+            //INPUT_FILENAME = "ius8-summary.xlsx"; // breakpoints/troubleshooting
             string OUTPUT_FILENAME = string.Empty;
             string strOF = string.Empty;
             string PRODUCT = string.Empty;
@@ -67,7 +67,8 @@ namespace ExcelManip {
              * INPUT_FILENAME|INPUT_FILENAME OUTPUT_FILENAME
              */
             argumentLength = args.Length;
-            if (string.IsNullOrEmpty(INPUT_FILENAME) && argumentLength == 0) { // usage
+            if (string.IsNullOrEmpty(INPUT_FILENAME) && argumentLength == 0) { // usage?
+                Console.Out.WriteLine("Input filename needed.");
                 return;
             }
 
@@ -90,6 +91,10 @@ namespace ExcelManip {
             }
             else if (!string.IsNullOrEmpty(INPUT_FILENAME) && argumentLength == 0) { // debug?
                 OUTPUT_FILENAME = INPUT_FILENAME.Replace(".xlsx", "-alm-import.xlsx");
+            }
+            else { // too many?
+                Console.Out.WriteLine("Too many inputs.");
+                return;
             }
 
 
